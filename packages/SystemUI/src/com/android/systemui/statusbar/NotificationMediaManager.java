@@ -116,6 +116,9 @@ public class NotificationMediaManager implements Dumpable, TunerService.Tunable 
         CONNECTING_MEDIA_STATES.add(PlaybackState.STATE_BUFFERING);
     }
 
+    private static final String LOCKSCREEN_MEDIA_METADATA =
+            Settings.Secure.LOCKSCREEN_MEDIA_METADATA;
+
     private final NotificationVisibilityProvider mVisibilityProvider;
     private final MediaDataManager mMediaDataManager;
     private final NotifPipeline mNotifPipeline;

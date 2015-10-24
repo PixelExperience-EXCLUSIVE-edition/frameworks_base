@@ -109,7 +109,8 @@ public interface CentralSurfacesDependenciesModule {
             RemoteInputUriController remoteInputUriController,
             NotificationClickNotifier clickNotifier,
             ActionClickLogger actionClickLogger,
-            DumpManager dumpManager) {
+            DumpManager dumpManager,
+            TunerService tunerService) {
         return new NotificationRemoteInputManager(
                 context,
                 notifPipelineFlags,
