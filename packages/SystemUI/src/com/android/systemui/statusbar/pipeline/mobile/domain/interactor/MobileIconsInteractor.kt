@@ -95,6 +95,9 @@ interface MobileIconsInteractor {
     /** True if we're configured to force-hide the mobile icons and false otherwise. */
     val isForceHidden: Flow<Boolean>
 
+    /** True if we're configured to force-hide the roaming and false otherwise. */
+    val isRoamingForceHidden: Flow<Boolean>
+
     /**
      * Vends out a [MobileIconInteractor] tracking the [MobileConnectionRepository] for the given
      * subId. Will throw if the ID is invalid
@@ -294,6 +297,11 @@ constructor(
             .map { it.contains(ConnectivitySlot.MOBILE) }
             .stateIn(scope, SharingStarted.WhileSubscribed(), false)
 
+    override val isRoamingForceHidden: Flow<Boolean> =
+        connectivityRepository.forceHiddenSlots
+            .map { it.contains(ConnectivitySlot.ROAMING) }
+            .stateIn(scope, SharingStarted.WhileSubscribed(), false)
+
     /** Vends out new [MobileIconInteractor] for a particular subId */
     override fun createMobileConnectionInteractorForSubId(subId: Int): MobileIconInteractor =
         MobileIconInteractorImpl(
@@ -307,6 +315,7 @@ constructor(
             defaultDataSubId,
             isDefaultConnectionFailed,
             isForceHidden,
+            isRoamingForceHidden,
             mobileConnectionsRepo.getRepoForSubId(subId),
         )
 
