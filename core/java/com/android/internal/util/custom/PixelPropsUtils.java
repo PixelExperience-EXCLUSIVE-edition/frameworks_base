@@ -69,7 +69,8 @@ public class PixelPropsUtils {
             "com.breel.wallpapers20",
             "com.nhs.online.nhsonline",
             "com.netflix.mediaclient",
-            "com.nothing.smartcenter"
+            "com.nothing.smartcenter",
+            "com.netflix.mediaclient"
     };
 
     private static final String[] packagesToKeep = {
