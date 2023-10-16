@@ -1183,19 +1183,9 @@ public class ClipboardService extends SystemService {
                 String message =
                         getContext().getString(R.string.pasted_from_clipboard, callingAppLabel);
                 Slog.i(TAG, message);
-                Toast toastToShow;
-                if (SafetyProtectionUtils.shouldShowSafetyProtectionResources(getContext())) {
-                    Drawable safetyProtectionIcon = getContext()
-                            .getDrawable(R.drawable.ic_safety_protection);
-                    toastToShow = Toast.makeCustomToastWithIcon(getContext(),
-                            UiThread.get().getLooper(), message,
-                            Toast.LENGTH_SHORT, safetyProtectionIcon);
-                } else {
-                    toastToShow = Toast.makeText(
-                            getContext(), UiThread.get().getLooper(), message,
-                            Toast.LENGTH_SHORT);
-                }
-                toastToShow.show();
+                Toast.makeText(
+                        getContext(), UiThread.get().getLooper(), message, Toast.LENGTH_LONG)
+                        .show();
             } catch (PackageManager.NameNotFoundException e) {
                 // do nothing
             }
