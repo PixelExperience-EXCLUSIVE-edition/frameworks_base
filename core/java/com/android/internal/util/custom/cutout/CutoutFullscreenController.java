@@ -38,6 +38,8 @@ public class CutoutFullscreenController {
 
     private final boolean isAvailable;
 
+    private static final String PKG_AMZN_PRIME_VIDEO = "com.amazon.avod.thirdpartyclient";
+
     public CutoutFullscreenController(Context context) {
         mContext = context;
         final Resources resources = mContext.getResources();
@@ -59,7 +61,7 @@ public class CutoutFullscreenController {
     }
 
     public boolean shouldForceCutoutFullscreen(String packageName) {
-        return isSupported() && mApps.contains(packageName);
+        return isSupported() && (mApps.contains(packageName) || packageName.equals(PKG_AMZN_PRIME_VIDEO));
     }
 
     public Set<String> getApps() {
