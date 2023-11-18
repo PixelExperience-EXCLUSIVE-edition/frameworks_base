@@ -59,7 +59,8 @@ public class CutoutFullscreenController {
     }
 
     public boolean shouldForceCutoutFullscreen(String packageName) {
-        return isSupported() && mApps.contains(packageName);
+        return isSupported() && (mApps.contains(packageName)
+            || packageName.contains("com.amazon.avod.thirdpartyclient"));
     }
 
     public Set<String> getApps() {
