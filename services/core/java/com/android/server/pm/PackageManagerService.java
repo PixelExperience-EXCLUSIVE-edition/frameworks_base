@@ -6521,6 +6521,10 @@ public class PackageManagerService extends IPackageManager.Stub
                     true /*allowDynamicSplits*/);
             Trace.traceEnd(TRACE_TAG_PACKAGE_MANAGER);
 
+            final boolean queryMayBeFiltered =
+                    UserHandle.getAppId(filterCallingUid) >= Process.FIRST_APPLICATION_UID
+                            && !resolveForStart;
+
             final ResolveInfo bestChoice =
                     chooseBestActivity(
                             intent, resolvedType, flags, privateResolveFlags, query, userId,

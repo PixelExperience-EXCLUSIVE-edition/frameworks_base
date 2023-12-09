@@ -37,6 +37,7 @@ import android.os.ParcelableException;
 import android.os.RemoteCallback;
 import android.os.RemoteException;
 import android.os.UserHandle;
+import android.os.UserManagerInternal;
 import android.os.storage.StorageManagerInternal;
 import android.os.storage.StorageVolume;
 import android.service.storage.ExternalStorageService;
@@ -71,15 +72,20 @@ public final class StorageUserConnection {
     private final int mUserId;
     private final StorageSessionController mSessionController;
     private final ActiveConnection mActiveConnection = new ActiveConnection();
+    private final boolean mIsDemoUser;
     @GuardedBy("mLock") private final Map<String, Session> mSessions = new HashMap<>();
-    private final HandlerThread mHandlerThread;
+    @GuardedBy("mLock") @Nullable private HandlerThread mHandlerThread;
 
     public StorageUserConnection(Context context, int userId, StorageSessionController controller) {
         mContext = Objects.requireNonNull(context);
         mUserId = Preconditions.checkArgumentNonnegative(userId);
         mSessionController = controller;
-        mHandlerThread = new HandlerThread("StorageUserConnectionThread-" + mUserId);
-        mHandlerThread.start();
+        mIsDemoUser = LocalServices.getService(UserManagerInternal.class)
+                .getUserInfo(userId).isDemo();
+        if (mIsDemoUser) {
+            mHandlerThread = new HandlerThread("StorageUserConnectionThread-" + mUserId);
+            mHandlerThread.start();
+        }
     }
 
     /**
@@ -185,7 +191,9 @@ public final class StorageUserConnection {
      */
     public void close() {
         mActiveConnection.close();
-        mHandlerThread.quit();
+        if (mIsDemoUser) {
+            mHandlerThread.quit();
+        }
     }
 
     /** Returns all created sessions. */
@@ -195,10 +203,25 @@ public final class StorageUserConnection {
         }
     }
 
-    @FunctionalInterface
-    interface AsyncStorageServiceCall {
-        void run(@NonNull IExternalStorageService service, RemoteCallback callback) throws
-                RemoteException;
+    private void prepareRemote() throws ExternalStorageServiceException {
+        try {
+            waitForLatch(mActiveConnection.bind(), "remote_prepare_user " + mUserId);
+        } catch (IllegalStateException | TimeoutException e) {
+            throw new ExternalStorageServiceException("Failed to prepare remote", e);
+        }
+    }
+
+    private void waitForLatch(CountDownLatch latch, String reason) throws TimeoutException {
+        try {
+            if (!latch.await(DEFAULT_REMOTE_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                // TODO(b/140025078): Call ActivityManager ANR API?
+                Slog.wtf(TAG, "Failed to bind to the ExternalStorageService for user " + mUserId);
+                throw new TimeoutException("Latch wait for " + reason + " elapsed");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Latch wait for " + reason + " interrupted");
+        }
     }
 
     private final class ActiveConnection implements AutoCloseable {
@@ -378,19 +401,32 @@ public final class StorageUserConnection {
                 };
 
                 Slog.i(TAG, "Binding to the ExternalStorageService for user " + mUserId);
-                // Schedule on a worker thread, because the system server main thread can be
-                // very busy early in boot.
-                if (mContext.bindServiceAsUser(new Intent().setComponent(name),
-                                mServiceConnection,
-                                Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT,
-                                mHandlerThread.getThreadHandler(),
-                                UserHandle.of(mUserId))) {
-                    Slog.i(TAG, "Bound to the ExternalStorageService for user " + mUserId);
-                    mRemoteFuture = future;
-                    return future;
+                if (mIsDemoUser) {
+                    // Schedule on a worker thread for demo user to avoid deadlock
+                    if (mContext.bindServiceAsUser(new Intent().setComponent(name),
+                                    mServiceConnection,
+                                    Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT,
+                                    mHandlerThread.getThreadHandler(),
+                                    UserHandle.of(mUserId))) {
+                        Slog.i(TAG, "Bound to the ExternalStorageService for user " + mUserId);
+                        return mLatch;
+                    } else {
+                        mIsConnecting = false;
+                        throw new ExternalStorageServiceException(
+                                "Failed to bind to the ExternalStorageService for user " + mUserId);
+                    }
                 } else {
-                    throw new ExternalStorageServiceException(
-                            "Failed to bind to the ExternalStorageService for user " + mUserId);
+                    if (mContext.bindServiceAsUser(new Intent().setComponent(name),
+                                    mServiceConnection,
+                                    Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT,
+                                    UserHandle.of(mUserId))) {
+                        Slog.i(TAG, "Bound to the ExternalStorageService for user " + mUserId);
+                        return mLatch;
+                    } else {
+                        mIsConnecting = false;
+                        throw new ExternalStorageServiceException(
+                                "Failed to bind to the ExternalStorageService for user " + mUserId);
+                    }
                 }
             }
         }
