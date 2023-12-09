@@ -4483,7 +4483,7 @@ public class NotificationManagerService extends SystemService {
         }
 
         @Override
-        public String addAutomaticZenRule(AutomaticZenRule automaticZenRule) {
+        public String addAutomaticZenRule(AutomaticZenRule automaticZenRule, String pkg) {
             Objects.requireNonNull(automaticZenRule, "automaticZenRule is null");
             Objects.requireNonNull(automaticZenRule.getName(), "Name is null");
             if (automaticZenRule.getOwner() == null
@@ -4492,6 +4492,7 @@ public class NotificationManagerService extends SystemService {
                         "Rule must have a conditionproviderservice and/or configuration activity");
             }
             Objects.requireNonNull(automaticZenRule.getConditionId(), "ConditionId is null");
+            checkCallerIsSameApp(pkg);
             if (automaticZenRule.getZenPolicy() != null
                     && automaticZenRule.getInterruptionFilter() != INTERRUPTION_FILTER_PRIORITY) {
                 throw new IllegalArgumentException("ZenPolicy is only applicable to "
@@ -4499,7 +4500,7 @@ public class NotificationManagerService extends SystemService {
             }
             enforcePolicyAccess(Binder.getCallingUid(), "addAutomaticZenRule");
 
-            return mZenModeHelper.addAutomaticZenRule(automaticZenRule,
+            return mZenModeHelper.addAutomaticZenRule(pkg, automaticZenRule,
                     "addAutomaticZenRule");
         }
 
@@ -6312,6 +6313,7 @@ public class NotificationManagerService extends SystemService {
 
         @GuardedBy("mNotificationLock")
         void snoozeLocked(NotificationRecord r) {
+            final List<NotificationRecord> recordsToSnooze = new ArrayList<>();
             if (r.getSbn().isGroup()) {
                 final List<NotificationRecord> groupNotifications =
                         findCurrentAndSnoozedGroupNotificationsLocked(
@@ -6320,8 +6322,8 @@ public class NotificationManagerService extends SystemService {
                 if (r.getNotification().isGroupSummary()) {
                     // snooze all children
                     for (int i = 0; i < groupNotifications.size(); i++) {
-                        if (mKey != groupNotifications.get(i).getKey()) {
-                            snoozeNotificationLocked(groupNotifications.get(i));
+                        if (!mKey.equals(groupNotifications.get(i).getKey())) {
+                            recordsToSnooze.add(groupNotifications.get(i));
                         }
                     }
                 } else {
@@ -6331,8 +6333,8 @@ public class NotificationManagerService extends SystemService {
                         if (groupNotifications.size() == 2) {
                             // snooze summary and the one child
                             for (int i = 0; i < groupNotifications.size(); i++) {
-                                if (mKey != groupNotifications.get(i).getKey()) {
-                                    snoozeNotificationLocked(groupNotifications.get(i));
+                                if (!mKey.equals(groupNotifications.get(i).getKey())) {
+                                    recordsToSnooze.add(groupNotifications.get(i));
                                 }
                             }
                         }
@@ -6340,7 +6342,15 @@ public class NotificationManagerService extends SystemService {
                 }
             }
             // snooze the notification
-            snoozeNotificationLocked(r);
+            recordsToSnooze.add(r);
+
+            if (mSnoozeHelper.canSnooze(recordsToSnooze.size())) {
+                for (int i = 0; i < recordsToSnooze.size(); i++) {
+                    snoozeNotificationLocked(recordsToSnooze.get(i));
+                }
+            } else {
+                Log.w(TAG, "Cannot snooze " + r.getKey() + ": too many snoozed notifications");
+            }
 
         }
 
