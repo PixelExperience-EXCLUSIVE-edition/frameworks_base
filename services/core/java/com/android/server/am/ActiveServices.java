@@ -1488,7 +1488,6 @@ public final class ActiveServices {
                         final long delayMs = SystemClock.elapsedRealtime() -
                                 r.mLastSetFgsRestrictionTime;
                         if (delayMs > mAm.mConstants.mFgsStartForegroundTimeoutMs) {
-                            resetFgsRestrictionLocked(r);
                             setFgsRestrictionLocked(r.serviceInfo.packageName, r.app.pid,
                                     r.appInfo.uid, r, false);
                             EventLog.writeEvent(0x534e4554, "183147114", r.appInfo.uid,
@@ -2160,12 +2159,7 @@ public final class ActiveServices {
                 }
             }
 
-            if (!s.mAllowWhileInUsePermissionInFgs) {
-                s.mAllowWhileInUsePermissionInFgs =
-                        shouldAllowWhileInUsePermissionInFgsLocked(callingPackage,
-                                callingPid, callingUid,
-                                service, s, false);
-            }
+            setFgsRestrictionLocked(callingPackage, callingPid, callingUid, s, false);
 
             if (s.app != null) {
                 if ((flags&Context.BIND_TREAT_LIKE_ACTIVITY) != 0) {
@@ -5051,5 +5045,6 @@ public final class ActiveServices {
 
     private void resetFgsRestrictionLocked(ServiceRecord r) {
         r.mAllowWhileInUsePermissionInFgs = false;
+        r.mLastSetFgsRestrictionTime = 0;
     }
 }
