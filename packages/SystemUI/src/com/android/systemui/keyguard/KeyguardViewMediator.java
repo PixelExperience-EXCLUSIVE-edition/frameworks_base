@@ -1723,13 +1723,6 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
                     Log.d(TAG, "keyguardEnabled(false) overridden by user lockdown");
                     return;
                 }
-                if (mExitSecureCallback != null) {
-                    if (DEBUG) Log.d(TAG, "in process of verifyUnlock request, ignoring");
-                    // we're in the process of handling a request to verify the user
-                    // can get past the keyguard. ignore extraneous requests to disable / re-enable
-                    return;
-                }
-
                 // hiding keyguard that is showing, remember to reshow later
                 if (DEBUG) Log.d(TAG, "remembering to reshow, hiding keyguard, "
                         + "disabling status bar expansion");
@@ -1938,12 +1931,7 @@ public class KeyguardViewMediator implements CoreStartable, Dumpable,
      * Enable the keyguard if the settings are appropriate.
      */
     private void doKeyguardLocked(Bundle options) {
-        if (KeyguardUpdateMonitor.CORE_APPS_ONLY) {
-            // Don't show keyguard during half-booted cryptkeeper stage.
-            if (DEBUG) Log.d(TAG, "doKeyguard: not showing because booting to cryptkeeper");
-            return;
-        }
-
+        
         // if another app is disabling us, don't show unless we're in lockdown mode
         if (!mExternallyEnabled
                 && !mLockPatternUtils.isUserInLockdown(KeyguardUpdateMonitor.getCurrentUser())) {
