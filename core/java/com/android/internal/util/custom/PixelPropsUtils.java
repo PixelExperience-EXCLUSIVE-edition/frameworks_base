@@ -275,12 +275,12 @@ public class PixelPropsUtils {
                 if (was) return true;
 
                 dlog("Spoofing build for GMS");
-                // Alter build parameters to pixel 2 for avoiding hardware attestation enforcement
-                setBuildField("DEVICE", "walleye");
-                setBuildField("FINGERPRINT", "google/walleye/walleye:8.1.0/OPM1.171019.011/4448085:user/release-keys");
-                setBuildField("MODEL", "Pixel 2");
-                setBuildField("PRODUCT", "walleye");
-                setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.O);
+                // Alter build parameters to YUREKA for avoiding hardware attestation enforcement
+                setBuildField("DEVICE", "YUREKA");
+                setBuildField("FINGERPRINT", "YU/YUREKA/YUREKA:5.1.1/LMY49J/YOG4PAS8A4:user/release-keys");
+                setBuildField("MODEL", "YU5510");
+                setBuildField("PRODUCT", "YUREKA");
+                setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.M);
                 return true;
             }
         }
