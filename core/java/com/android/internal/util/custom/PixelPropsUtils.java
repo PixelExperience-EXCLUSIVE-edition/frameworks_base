@@ -60,6 +60,7 @@ public class PixelPropsUtils {
     private static final Map<String, Object> propsToChange11T;
     private static final Map<String, Object> propsToChangeF4;
     private static final Map<String, Object> propsToChangeK30U;
+    private static final Map<String, Object> propsToChange11Lite;
     private static final Map<String, ArrayList<String>> propsToKeep;
 
     // Packages to Spoof as Pixel 7 Pro
@@ -78,9 +79,7 @@ public class PixelPropsUtils {
             "com.android.chrome",
             "com.breel.wallpapers20",
             "com.nhs.online.nhsonline",
-            "com.netflix.mediaclient",
             "com.nothing.smartcenter",
-            "com.netflix.mediaclient"
     };
 
     // Packages to Keep with original device
@@ -181,6 +180,11 @@ public class PixelPropsUtils {
             "com.pubg.imobile"
     };
 
+    // Packaged to spoof as Mi 11 Lite 5G
+    private static final String[] packageToChange11Lite = {
+        "com.netflix.mediaclient"
+    }
+
     private static volatile boolean sIsGms, sIsFinsky, sIsPhotos;
 
     static {
@@ -234,6 +238,9 @@ public class PixelPropsUtils {
         propsToChangeK30U = new HashMap<>();
         propsToChangeK30U.put("MODEL", "M2006J10C");
         propsToChangeK30U.put("MANUFACTURER", "Xiaomi");
+        propsToChange11Lite = new HashMap<>();
+        propsToChange11Lite.put("MODEL", "M2101K9G");
+        propsToChange11Lite.put("MANUFACTURER", "Xiaomi");
     }
 
     private static boolean isGoogleCameraPackage(String packageName) {
@@ -391,6 +398,13 @@ public class PixelPropsUtils {
             } else if (Arrays.asList(packagesToChangeF4).contains(packageName)) {
                 if (DEBUG) Log.d(TAG, "Defining props for: " + packageName);
                 for (Map.Entry<String, Object> prop : propsToChangeF4.entrySet()) {
+                    String key = prop.getKey();
+                    Object value = prop.getValue();
+                    setPropValue(key, value);
+                }
+            } else if (Arrays.asList(packageToChange11Lite).contains(packageName)) {
+                if (DEBUG) Log.d(TAG, "Defining props for: " + packageName);
+                for (Map.Entry<String, Object> prop : propsToChange11Lite.entrySet()) {
                     String key = prop.getKey();
                     Object value = prop.getValue();
                     setPropValue(key, value);
