@@ -282,12 +282,16 @@ public class PixelPropsUtils {
                 if (was) return true;
 
                 dlog("Spoofing build for GMS");
-                // Alter build parameters to NOKIA 3 NE1 for avoiding hardware attestation enforcement
-                setBuildField("DEVICE", "NE1");
-                setBuildField("FINGERPRINT", "Nokia/NE1_00WW_FIH/NE1:9/PPR1.180610.011/00WW_5_180:user/release-keys");
-                setBuildField("MODEL", "NE1");
-                setBuildField("PRODUCT", "NE1_00WW_FIH");
-                setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.P);
+                // Alter build parameters to Hisense for avoiding hardware attestation enforcement
+                setPropValue("BRAND", "Hisense");
+                setPropValue("MANUFACTURER", "Hisense");
+                setBuildField("DEVICE", "HS6735MT");
+                setPropValue("ID", "MRA58K");
+                setBuildField("FINGERPRINT", "Hisense/F30/HS6735MT:6.0/MRA58K/L1228.6.01.01:user/release-keys");
+                setBuildField("MODEL", "Hisense F30");
+                setBuildField("PRODUCT", "F30");
+                setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.S);
+                setVersionFieldString("SECURITY_PATCH", "2016-02-01");
                 return true;
             }
         }
@@ -455,6 +459,18 @@ public class PixelPropsUtils {
             field.setAccessible(false);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             Log.e(TAG, "Failed to set version field " + key, e);
+        }
+    }
+
+    private static void setVersionFieldString(String key, String value) {
+        try {
+            if (DEBUG) Log.d(TAG, "Defining prop " + key + " to " + value);
+            Field field = Build.VERSION.class.getDeclaredField(key);
+            field.setAccessible(true);
+            field.set(null, value);
+            field.setAccessible(false);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            Log.e(TAG, "Failed to set prop " + key, e);
         }
     }
 
