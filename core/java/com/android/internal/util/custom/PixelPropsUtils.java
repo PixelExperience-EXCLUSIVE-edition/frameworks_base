@@ -183,7 +183,7 @@ public class PixelPropsUtils {
     // Packaged to spoof as Mi 11 Lite 5G
     private static final String[] packageToChange11Lite = {
         "com.netflix.mediaclient"
-    }
+    };
 
     private static volatile boolean sIsGms, sIsFinsky, sIsPhotos;
 
@@ -199,14 +199,14 @@ public class PixelPropsUtils {
         propsToChangePixel7Pro.put("DEVICE", "cheetah");
         propsToChangePixel7Pro.put("PRODUCT", "cheetah");
         propsToChangePixel7Pro.put("MODEL", "Pixel 7 Pro");
-        propsToChangePixel7Pro.put("FINGERPRINT", "google/cheetah/cheetah:13/TQ3A.230901.001/10750268:user/release-keys");
+        propsToChangePixel7Pro.put("FINGERPRINT", "google/cheetah/cheetah:14/UQ1A.240105.004/11206848:user/release-keys");
         propsToChangePixel5 = new HashMap<>();
         propsToChangePixel5.put("BRAND", "google");
         propsToChangePixel5.put("MANUFACTURER", "Google");
         propsToChangePixel5.put("DEVICE", "redfin");
         propsToChangePixel5.put("PRODUCT", "redfin");
         propsToChangePixel5.put("MODEL", "Pixel 5");
-        propsToChangePixel5.put("FINGERPRINT", "google/redfin/redfin:13/TQ3A.230901.001/10750268:user/release-keys");
+        propsToChangePixel5.put("FINGERPRINT", "google/redfin/redfin:14/UP1A.231105.001/10817346:user/release-keys");
         propsToChangePixelXL = new HashMap<>();
         propsToChangePixelXL.put("BRAND", "google");
         propsToChangePixelXL.put("MANUFACTURER", "Google");
@@ -282,12 +282,12 @@ public class PixelPropsUtils {
                 if (was) return true;
 
                 dlog("Spoofing build for GMS");
-                // Alter build parameters to YUREKA for avoiding hardware attestation enforcement
-                setBuildField("DEVICE", "YUREKA");
-                setBuildField("FINGERPRINT", "YU/YUREKA/YUREKA:5.1.1/LMY49J/YOG4PAS8A4:user/release-keys");
-                setBuildField("MODEL", "YU5510");
-                setBuildField("PRODUCT", "YUREKA");
-                setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.M);
+                // Alter build parameters to NOKIA 3 NE1 for avoiding hardware attestation enforcement
+                setBuildField("DEVICE", "NE1");
+                setBuildField("FINGERPRINT", "Nokia/NE1_00WW_FIH/NE1:9/PPR1.180610.011/00WW_5_180:user/release-keys");
+                setBuildField("MODEL", "NE1");
+                setBuildField("PRODUCT", "NE1_00WW_FIH");
+                setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.P);
                 return true;
             }
         }
