@@ -1281,7 +1281,7 @@ public class AudioDeviceInventory {
             mDeviceBroker.setBluetoothA2dpOnInt(true, false /*fromA2dp*/, eventSource);
 
             AudioDeviceAttributes ada = new AudioDeviceAttributes(device, address, name);
-            AudioSystem.setDeviceConnectionState(ada,
+            final int res = AudioSystem.setDeviceConnectionState(ada,
                     AudioSystem.DEVICE_STATE_AVAILABLE,
                     AudioSystem.AUDIO_FORMAT_DEFAULT);
             if (res != AudioSystem.AUDIO_STATUS_OK) {
@@ -1671,6 +1671,7 @@ public class AudioDeviceInventory {
             }
         }
         return null;
+    }
 
     /*package*/ String getDeviceSettings() {
         int deviceCatalogSize = 0;

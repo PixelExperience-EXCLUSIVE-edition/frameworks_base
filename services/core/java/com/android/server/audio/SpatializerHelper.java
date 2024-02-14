@@ -49,6 +49,7 @@ import android.util.Pair;
 import android.util.SparseIntArray;
 
 import com.android.internal.annotations.GuardedBy;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -78,7 +79,7 @@ public class SpatializerHelper {
 
     //------------------------------------------------------------
 
-    /*package*/ static final SparseIntArray SPAT_MODE_FOR_DEVICE_TYPE = new SparseIntArray(15) {
+    /*package*/ static final SparseIntArray SPAT_MODE_FOR_DEVICE_TYPE = new SparseIntArray(14) {
         {
             append(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER, SpatializationMode.SPATIALIZER_TRANSAURAL);
             append(AudioDeviceInfo.TYPE_WIRED_HEADSET, SpatializationMode.SPATIALIZER_BINAURAL);
@@ -108,6 +109,10 @@ public class SpatializerHelper {
     /*package*/ static final int STATE_ENABLED_AVAILABLE = 5;
     /*package*/ static final int STATE_DISABLED_AVAILABLE = 6;
     private int mState = STATE_UNINITIALIZED;
+
+    @VisibleForTesting boolean mBinauralEnabledDefault;
+    @VisibleForTesting boolean mTransauralEnabledDefault;
+    @VisibleForTesting boolean mHeadTrackingEnabledDefault;
 
     private boolean mFeatureEnabled = false;
     /** current level as reported by native Spatializer in callback */
@@ -170,7 +175,7 @@ public class SpatializerHelper {
         mHeadTrackingEnabledDefault = headTrackingEnabledDefault;
     }
 
-    synchronized void init(boolean effectExpected, @Nullable String settings) {
+    synchronized void init(boolean effectExpected) {
         loglogi("init effectExpected=" + effectExpected);
         if (!effectExpected) {
             loglogi("init(): setting state to STATE_NOT_SUPPORTED due to effect not expected");
@@ -568,8 +573,15 @@ public class SpatializerHelper {
         if (device == null) {
             return;
         }
-        device.setSAEnabled(true);
-        device.setHeadTrackerEnabled(true);
+
+        int spatMode = SPAT_MODE_FOR_DEVICE_TYPE.get(device.getDeviceType(),
+                Integer.MIN_VALUE);
+        device.setSAEnabled(spatMode == SpatializationMode.SPATIALIZER_BINAURAL
+                ? mBinauralEnabledDefault
+                : spatMode == SpatializationMode.SPATIALIZER_TRANSAURAL
+                        ? mTransauralEnabledDefault
+                        : false);
+        device.setHeadTrackerEnabled(mHeadTrackingEnabledDefault);
     }
 
     private static final String METRICS_DEVICE_PREFIX = "audio.spatializer.device.";
@@ -581,7 +593,7 @@ public class SpatializerHelper {
     // We always send the full device state info on each change.
     static void logDeviceState(AdiDeviceState deviceState, String event) {
         final int deviceType = AudioDeviceInfo.convertDeviceTypeToInternalDevice(
-                deviceState.getDeviceType();
+                deviceState.getDeviceType());
         final String deviceName = AudioSystem.getDeviceName(deviceType);
         new MediaMetrics.Item(METRICS_DEVICE_PREFIX + deviceName)
                 .set(MediaMetrics.Property.ADDRESS, deviceState.getDeviceAddress())
@@ -661,7 +673,7 @@ public class SpatializerHelper {
             return new Pair<>(false, false);
         }
         // found the matching device state.
-        return new Pair<>(deviceState.isSAEnabled() true /* available */);
+        return new Pair<>(deviceState.isSAEnabled(), true /* available */);
     }
 
     private synchronized void addWirelessDeviceIfNew(@NonNull AudioDeviceAttributes ada) {
@@ -757,20 +769,6 @@ public class SpatializerHelper {
                 deviceState.getAudioDeviceAttributes());
     }
 
-    private boolean isDeviceCompatibleWithSpatializationModes(@NonNull AudioDeviceAttributes ada) {
-        // modeForDevice will be neither transaural or binaural for devices that do not support
-        // spatial audio. For instance mono devices like earpiece, speaker safe or sco must
-        // not be included.
-        final byte modeForDevice = (byte) SPAT_MODE_FOR_DEVICE_TYPE.get(ada.getType(),
-            /*default when type not found*/ -1);
-        if ((modeForDevice == SpatializationMode.SPATIALIZER_BINAURAL && mBinauralSupported)
-                || (modeForDevice == SpatializationMode.SPATIALIZER_TRANSAURAL
-                    && mTransauralSupported)) {
-            return true;
-        }
-        return false;
-    }
-
     synchronized void setFeatureEnabled(boolean enabled) {
         loglogi("setFeatureEnabled(" + enabled + ") was featureEnabled:" + mFeatureEnabled);
         if (mFeatureEnabled == enabled) {
@@ -783,7 +781,7 @@ public class SpatializerHelper {
                 return;
             }
             if (mState == STATE_UNINITIALIZED) {
-                init(true, null /* settings */);
+                init(true);
             }
             setSpatializerEnabledInt(true);
         } else {

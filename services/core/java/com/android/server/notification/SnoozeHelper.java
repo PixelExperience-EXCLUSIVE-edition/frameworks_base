@@ -128,20 +128,6 @@ public final class SnoozeHelper {
         return true;
     }
 
-    private int countPersistedNotificationsLocked() {
-        int numNotifications = 0;
-        for (ArrayMap<String, String> persistedWithContext :
-                mPersistedSnoozedNotificationsWithContext.values()) {
-            numNotifications += persistedWithContext.size();
-        }
-        for (ArrayMap<String, Long> persistedWithDuration :
-                mPersistedSnoozedNotifications.values()) {
-            numNotifications += persistedWithDuration.size();
-        }
-        return numNotifications;
-    }
-
-
     @NonNull
     protected Long getSnoozeTimeForUnpostedNotification(int userId, String pkg, String key) {
         Long time = null;
@@ -360,11 +346,9 @@ public final class SnoozeHelper {
 
             if (groupSummaryKey != null) {
                 NotificationRecord record = mSnoozedNotifications.remove(groupSummaryKey);
-
-                final String trimmedKey = getTrimmedString(groupSummaryKey);
-                removeRecordLocked(pkg, trimmedKey, userId, mPersistedSnoozedNotifications);
-                removeRecordLocked(pkg, trimmedKey, userId,
-                      mPersistedSnoozedNotificationsWithContext);
+                String trimmedKey = getTrimmedString(groupSummaryKey);
+                mPersistedSnoozedNotificationsWithContext.remove(trimmedKey);
+                mPersistedSnoozedNotifications.remove(trimmedKey);
 
                 if (record != null && !record.isCanceled) {
                     Runnable runnable = () -> {

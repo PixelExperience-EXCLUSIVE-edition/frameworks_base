@@ -999,7 +999,7 @@ public class AudioService extends IAudioService.Stub
 
         mPlatformType = AudioSystem.getPlatformType(context);
 
-        mDeviceBroker = new AudioDeviceBroker(mContext, this);
+        mDeviceBroker = new AudioDeviceBroker(mContext, this, mAudioSystem);
 
         mIsSingleVolume = AudioSystem.isSingleVolume(context);
 
@@ -1019,7 +1019,7 @@ public class AudioService extends IAudioService.Stub
                 "ro.audio.spatializer_transaural_enabled_default", true);
         boolean headTrackingEnabledDefault = mContext.getResources().getBoolean(
                 com.android.internal.R.bool.config_spatial_audio_head_tracking_enabled_default);
-        mSpatializerHelper = new SpatializerHelper(this, mAudioSystem, mDeviceBroker);
+        mSpatializerHelper = new SpatializerHelper(this, mAudioSystem, mDeviceBroker,
                 binauralEnabledDefault, transauralEnabledDefault, headTrackingEnabledDefault);
 
         mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
