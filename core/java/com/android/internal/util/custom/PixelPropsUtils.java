@@ -283,15 +283,15 @@ public class PixelPropsUtils {
 
                 dlog("Spoofing build for GMS");
                 // Alter build parameters to Hisense for avoiding hardware attestation enforcement
-                setPropValue("BRAND", "Hisense");
-                setPropValue("MANUFACTURER", "Hisense");
-                setBuildField("DEVICE", "HS6735MT");
-                setPropValue("ID", "MRA58K");
-                setBuildField("FINGERPRINT", "Hisense/F30/HS6735MT:6.0/MRA58K/L1228.6.01.01:user/release-keys");
-                setBuildField("MODEL", "Hisense F30");
-                setBuildField("PRODUCT", "F30");
+                setPropValue("BRAND", "motorola");
+                setPropValue("MANUFACTURER", "motorola");
+                setBuildField("DEVICE", "griffin");
+                setPropValue("ID", "MCC24.246-37");
+                setBuildField("FINGERPRINT", "motorola/griffin_retcn/griffin:6.0.1/MCC24.246-37/42:user/release-keys");
+                setBuildField("MODEL", "XT1650-05");
+                setBuildField("PRODUCT", "griffin_retcn");
                 setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.S);
-                setVersionFieldString("SECURITY_PATCH", "2016-02-01");
+                setVersionFieldString("SECURITY_PATCH", "2016-07-01");
                 return true;
             }
         }
