@@ -79,18 +79,13 @@ class KeyguardMediaControllerTest : SysuiTestCase() {
         whenever(statusBarStateController.state).thenReturn(StatusBarState.KEYGUARD)
         whenever(mediaHost.hostView).thenReturn(hostView)
         hostView.layoutParams = FrameLayout.LayoutParams(100, 100)
-        testableLooper = TestableLooper.get(this)
-        fakeHandler = FakeHandler(testableLooper.looper)
-        keyguardMediaController =
-            KeyguardMediaController(
-                mediaHost,
-                bypassController,
-                statusBarStateController,
-                context,
-                settings,
-                fakeHandler,
-                configurationController,
-            )
+        keyguardMediaController = KeyguardMediaController(
+            mediaHost,
+            bypassController,
+            statusBarStateController,
+            context,
+            configurationController
+        )
         keyguardMediaController.attachSinglePaneContainer(mediaContainerView)
         keyguardMediaController.useSplitShade = false
     }
@@ -115,15 +110,6 @@ class KeyguardMediaControllerTest : SysuiTestCase() {
         whenever(statusBarStateController.state).thenReturn(state)
         keyguardMediaController.refreshMediaPosition()
         assertThat(mediaContainerView.visibility).isEqualTo(visibility)
-    }
-
-    @Test
-    fun testHiddenOnKeyguard_whenMediaOnLockScreenDisabled() {
-        settings.putInt(Settings.Secure.MEDIA_CONTROLS_LOCK_SCREEN, 0)
-
-        keyguardMediaController.refreshMediaPosition()
-
-        assertThat(mediaContainerView.visibility).isEqualTo(GONE)
     }
 
     @Test

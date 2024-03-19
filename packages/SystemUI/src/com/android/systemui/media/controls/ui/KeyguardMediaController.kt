@@ -201,9 +201,7 @@ constructor(
         visible =
             mediaHost.visible &&
                 !bypassController.bypassEnabled &&
-                keyguardOrUserSwitcher &&
-                allowMediaPlayerOnLockScreen &&
-                shouldBeVisibleForSplitShade()
+                keyguardOrUserSwitcher
         if (visible) {
             showMediaPlayer()
         } else {
