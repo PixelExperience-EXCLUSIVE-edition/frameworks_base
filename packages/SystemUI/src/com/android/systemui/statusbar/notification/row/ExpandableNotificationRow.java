@@ -45,6 +45,7 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.Trace;
+import android.os.UserHandle;
 import android.service.notification.StatusBarNotification;
 import android.util.ArraySet;
 import android.util.AttributeSet;
@@ -1706,6 +1707,8 @@ public class ExpandableNotificationRow extends ActivatableNotificationView
             FeatureFlags featureFlags,
             IStatusBarService statusBarService) {
         mEntry = entry;
+        mImageResolver = new NotificationInlineImageResolver(userContextForEntry(mContext, entry),
+                new NotificationInlineImageCache());
         mAppName = appName;
         if (mMenuRow == null) {
             mMenuRow = new NotificationMenuRow(mContext, peopleNotificationIdentifier);
@@ -1741,6 +1744,14 @@ public class ExpandableNotificationRow extends ActivatableNotificationView
         mNotificationGutsManager = gutsManager;
         mMetricsLogger = metricsLogger;
         mFeatureFlags = featureFlags;
+    }
+
+    private static Context userContextForEntry(Context base, NotificationEntry entry) {
+        if (base.getUserId() == entry.getSbn().getNormalizedUserId()) {
+            return base;
+        }
+        return base.createContextAsUser(
+                UserHandle.of(entry.getSbn().getNormalizedUserId()), /* flags= */ 0);
     }
 
     private void initDimens() {
