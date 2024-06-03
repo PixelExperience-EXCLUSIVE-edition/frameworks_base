@@ -188,7 +188,7 @@ public class PixelPropsUtils {
         "com.netflix.mediaclient"
     };
 
-    private static volatile boolean sIsGms, sIsFinsky, sIsPhotos;
+    private static volatile boolean sIsFinsky, sIsPhotos;
 
     static {
         propsToKeep = new HashMap<>();
@@ -267,7 +267,6 @@ public class PixelPropsUtils {
             if (processName.toLowerCase().contains("unstable")
                     || processName.toLowerCase().contains("pixelmigrate")
                     || processName.toLowerCase().contains("instrumentation")) {
-                sIsGms = true;
 
                 final boolean was = isGmsAddAccountActivityOnTop();
                 final TaskStackListener taskStackListener = new TaskStackListener() {
@@ -290,15 +289,14 @@ public class PixelPropsUtils {
 
                 dlog("Spoofing build for GMS");
                 // Alter build parameters to Hisense for avoiding hardware attestation enforcement
-                setPropValue("BRAND", "motorola");
-                setPropValue("MANUFACTURER", "motorola");
-                setBuildField("DEVICE", "griffin");
-                setPropValue("ID", "MCC24.246-37");
-                setBuildField("FINGERPRINT", "motorola/griffin_retcn/griffin:6.0.1/MCC24.246-37/42:user/release-keys");
-                setBuildField("MODEL", "XT1650-05");
-                setBuildField("PRODUCT", "griffin_retcn");
-                setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.S);
-                setVersionFieldString("SECURITY_PATCH", "2016-07-01");
+                setPropValue("BRAND", "google");
+                setPropValue("MANUFACTURER", "Google");
+                setBuildField("DEVICE", "sailfish");
+                setPropValue("ID", "OPM1.171019.011");
+                setBuildField("FINGERPRINT", "google/sailfish/sailfish:8.1.0/OPM1.171019.011/4448085:user/release-keys");
+                setBuildField("MODEL", "Pixel");
+                setBuildField("PRODUCT", "sailfish");
+                setVersionFieldString("SECURITY_PATCH", "2017-12-05");
                 return true;
             }
         }
@@ -452,23 +450,6 @@ public class PixelPropsUtils {
         }
     }
 
-    private static void setVersionField(String key, Object value) {
-        try {
-            // Unlock
-            if (DEBUG) Log.d(TAG, "Defining version field " + key + " to " + value.toString());
-            Field field = Build.VERSION.class.getDeclaredField(key);
-            field.setAccessible(true);
-
-            // Edit
-            field.set(null, value);
-
-            // Lock
-            field.setAccessible(false);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            Log.e(TAG, "Failed to set version field " + key, e);
-        }
-    }
-
     private static void setVersionFieldString(String key, String value) {
         try {
             if (DEBUG) Log.d(TAG, "Defining prop " + key + " to " + value);
@@ -508,14 +489,15 @@ public class PixelPropsUtils {
     }
 
     private static boolean isCallerSafetyNet() {
-        return sIsGms && Arrays.stream(Thread.currentThread().getStackTrace())
-                .anyMatch(elem -> elem.getClassName().contains("DroidGuard"));
+        return Arrays.stream(Thread.currentThread().getStackTrace())
+                        .anyMatch(elem -> elem.getClassName().toLowerCase()
+                            .contains("droidguard"));
     }
 
     public static void onEngineGetCertificateChain() {
         // Check stack for SafetyNet or Play Integrity
         if (isCallerSafetyNet() || sIsFinsky) {
-            Log.i(TAG, "Blocked key attestation sIsGms=" + sIsGms + " sIsFinsky=" + sIsFinsky);
+            Log.i(TAG, "Blocked key attestation");
             throw new UnsupportedOperationException();
         }
     }
